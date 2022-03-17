@@ -8,6 +8,7 @@ In this repo, I add some area encodings which replace the classical sinusoidal p
 - (Mar. 17, 2022) branch created, add naive area and aaud encoding (modeling_pretrain.py)
 
 ## TODO
+- [ ] find appropriate constant for aaud
 - [ ] parallelize naive area encoding
 - [ ] modeling_finetune
 
