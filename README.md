@@ -9,7 +9,9 @@ In this repo, I add some area encodings which replace the classical sinusoidal p
 
 ## TODO
 - [ ] parallelize naive area encoding
-- [ ] 
+- [ ] modeling_finetune
+
+---
 
 (below setup and run section are from original [repo](https://github.com/pengzhiliang/MAE-pytorch). 
 if you want to run **naive area encoding** or **aaud encoding** model, change the model parameter as below
