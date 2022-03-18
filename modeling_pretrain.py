@@ -112,15 +112,18 @@ class PretrainVisionTransformerEncoder(nn.Module):
         # TODO: Add the cls token
         # self.cls_token = nn.Parameter(torch.zeros(1, 1, embed_dim))
         if use_learnable_pos_emb:
-            self.pos_embed = nn.Parameter(torch.zeros(1, num_patches + 1, embed_dim))
+            self.pos_embed = nn.Parameter(torch.zeros(1, num_patches, embed_dim))
         else:
             if pos_emb_type == "aaud":
                 self.pos_embed = get_area_encoding(num_patches, embed_dim, mode='aaud')
             elif pos_emb_type == "naive":
                 self.pos_embed = get_area_encoding(num_patches, embed_dim, mode='naive', img_size=img_size)
+            elif pos_emb_type == 'zero':
+                self.pos_embed = torch.zeros((1, num_patches, embed_dim))
             elif pos_emb_type == "sin":
                 # sine-cosine positional embeddings 
                 self.pos_embed = get_sinusoid_encoding_table(num_patches, embed_dim)
+
 
         dpr = [x.item() for x in torch.linspace(0, drop_path_rate, depth)]  # stochastic depth decay rule
         self.blocks = nn.ModuleList([
@@ -312,15 +315,22 @@ class PretrainVisionTransformer(nn.Module):
         self.mask_token = nn.Parameter(torch.zeros(1, 1, decoder_embed_dim))
 
         num_patches = self.encoder.patch_embed.num_patches
-        if pos_emb_type == 'aaud':
-            self.pos_embed = get_area_encoding(num_patches, decoder_embed_dim, mode='aaud')
-        if pos_emb_type == 'naive':  
-            self.pos_embed = get_area_encoding(num_patches, decoder_embed_dim, mode='naive', img_size=img_size)
-        elif pos_emb_type == 'sin':
-            self.pos_embed = get_sinusoid_encoding_table(num_patches, decoder_embed_dim)
+        if use_learnable_pos_emb:
+            self.pos_embed = nn.Parameter(torch.zeros(1, num_patches, embed_dim))
+        else:
+            if pos_emb_type == 'aaud':
+                self.pos_embed = get_area_encoding(num_patches, decoder_embed_dim, mode='aaud')
+            elif pos_emb_type == 'naive':  
+                self.pos_embed = get_area_encoding(num_patches, decoder_embed_dim, mode='naive', img_size=img_size)
+            elif pos_emb_type == 'zero':
+                self.pos_embed = torch.zeros(1, num_patches, decoder_embed_dim) 
+            elif pos_emb_type == 'sin':
+                self.pos_embed = get_sinusoid_encoding_table(num_patches, decoder_embed_dim)
 
         trunc_normal_(self.mask_token, std=.02)
-
+        
+        if use_learnable_pos_emb:
+            trunc_normal_(self.pos_embed, std=.02)
 
     def _init_weights(self, m):
         if isinstance(m, nn.Linear):
@@ -527,6 +537,110 @@ def pretrain_mae_base_patch16_224_with_naive_ae(pretrained=False, **kwargs):
         qkv_bias=True,
         norm_layer=partial(nn.LayerNorm, eps=1e-6), 
         pos_emb_type='naive',
+        **kwargs)
+    model.default_cfg = _cfg()
+    if pretrained:
+        checkpoint = torch.load(
+            kwargs["init_ckpt"], map_location="cpu"
+        )
+        model.load_state_dict(checkpoint["model"])
+    return model
+
+@register_model
+def pretrain_mae_small_patch16_224_with_learnable_pos(pretrained=False, **kwargs):
+    model = PretrainVisionTransformer(
+        img_size=224,
+        patch_size=16,
+        encoder_embed_dim=384,
+        encoder_depth=12,
+        encoder_num_heads=6,
+        encoder_num_classes=0,
+        decoder_num_classes=768,
+        decoder_embed_dim=192,
+        decoder_depth=4,
+        decoder_num_heads=3,
+        mlp_ratio=4,
+        qkv_bias=True,
+        norm_layer=partial(nn.LayerNorm, eps=1e-6),
+        use_learnable_pos_emb=True,
+        **kwargs)
+    model.default_cfg = _cfg()
+    if pretrained:
+        checkpoint = torch.load(
+            kwargs["init_ckpt"], map_location="cpu"
+        )
+        model.load_state_dict(checkpoint["model"])
+    return model
+
+@register_model
+def pretrain_mae_base_patch16_224_with_learnable_pos(pretrained=False, **kwargs):
+    model = PretrainVisionTransformer(
+        img_size=224,
+        patch_size=16, 
+        encoder_embed_dim=768, 
+        encoder_depth=12, 
+        encoder_num_heads=12,
+        encoder_num_classes=0,
+        decoder_num_classes=768,
+        decoder_embed_dim=384,
+        decoder_depth=4,
+        decoder_num_heads=6,
+        mlp_ratio=4, 
+        qkv_bias=True,
+        norm_layer=partial(nn.LayerNorm, eps=1e-6), 
+        use_learnable_pos_emb=True,
+        **kwargs)
+    model.default_cfg = _cfg()
+    if pretrained:
+        checkpoint = torch.load(
+            kwargs["init_ckpt"], map_location="cpu"
+        )
+        model.load_state_dict(checkpoint["model"])
+    return model
+
+@register_model
+def pretrain_mae_small_patch16_224_wo_pos(pretrained=False, **kwargs):
+    model = PretrainVisionTransformer(
+        img_size=224,
+        patch_size=16,
+        encoder_embed_dim=384,
+        encoder_depth=12,
+        encoder_num_heads=6,
+        encoder_num_classes=0,
+        decoder_num_classes=768,
+        decoder_embed_dim=192,
+        decoder_depth=4,
+        decoder_num_heads=3,
+        mlp_ratio=4,
+        qkv_bias=True,
+        norm_layer=partial(nn.LayerNorm, eps=1e-6),
+        pos_emb_type='zero',
+        **kwargs)
+    model.default_cfg = _cfg()
+    if pretrained:
+        checkpoint = torch.load(
+            kwargs["init_ckpt"], map_location="cpu"
+        )
+        model.load_state_dict(checkpoint["model"])
+    return model
+
+@register_model
+def pretrain_mae_base_patch16_224_with_wo_pos(pretrained=False, **kwargs):
+    model = PretrainVisionTransformer(
+        img_size=224,
+        patch_size=16, 
+        encoder_embed_dim=768, 
+        encoder_depth=12, 
+        encoder_num_heads=12,
+        encoder_num_classes=0,
+        decoder_num_classes=768,
+        decoder_embed_dim=384,
+        decoder_depth=4,
+        decoder_num_heads=6,
+        mlp_ratio=4, 
+        qkv_bias=True,
+        norm_layer=partial(nn.LayerNorm, eps=1e-6), 
+        pos_emb_type='zero',
         **kwargs)
     model.default_cfg = _cfg()
     if pretrained:
