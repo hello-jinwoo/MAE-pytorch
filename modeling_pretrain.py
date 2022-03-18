@@ -53,10 +53,10 @@ def get_aaud_for_patch(pos, encoding_dim=192):
     x_start, x_end, y_start, y_end = x_start[:, None], x_end[:, None], y_start[:, None], y_end[:, None]
 
     # IN PROGRESS: experiments on scale of coefficient
-    # x_coeff = 1 / ((x_end - x_start) * 4)
-    # y_coeff = 1 / ((y_end - y_start) * 4)
-    x_coeff = 1 / ((x_end - x_start) * 4 * np.pi)
-    y_coeff = 1 / ((y_end - y_start) * 4 * np.pi)
+    x_coeff = 1 / ((x_end - x_start) * 4)
+    y_coeff = 1 / ((y_end - y_start) * 4)
+    # x_coeff = 1 / ((x_end - x_start) * 4 * np.pi)
+    # y_coeff = 1 / ((y_end - y_start) * 4 * np.pi)
     # x_coeff = 1 / ((x_end - x_start) * 4 * np.pi ** 2)
     # y_coeff = 1 / ((y_end - y_start) * 4 * np.pi ** 2)
     x_theta_1 = 2 * np.pi * x_start
