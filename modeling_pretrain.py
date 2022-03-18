@@ -323,7 +323,7 @@ class PretrainVisionTransformer(nn.Module):
             elif pos_emb_type == 'naive':  
                 self.pos_embed = get_area_encoding(num_patches, decoder_embed_dim, mode='naive', img_size=img_size)
             elif pos_emb_type == 'zero':
-                self.pos_embed = nn.Parameter(torch.zeros(1, num_patches, embed_dim), requires_grad=False)
+                self.pos_embed = nn.Parameter(torch.zeros(1, num_patches, decoder_embed_dim), requires_grad=False)
             elif pos_emb_type == 'sin':
                 self.pos_embed = get_sinusoid_encoding_table(num_patches, decoder_embed_dim)
 
