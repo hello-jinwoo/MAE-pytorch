@@ -316,7 +316,7 @@ class PretrainVisionTransformer(nn.Module):
 
         num_patches = self.encoder.patch_embed.num_patches
         if use_learnable_pos_emb:
-            self.pos_embed = nn.Parameter(torch.zeros(1, num_patches, embed_dim))
+            self.pos_embed = nn.Parameter(torch.zeros(1, num_patches, decoder_embed_dim))
         else:
             if pos_emb_type == 'aaud':
                 self.pos_embed = get_area_encoding(num_patches, decoder_embed_dim, mode='aaud')
@@ -599,7 +599,7 @@ def pretrain_mae_base_patch16_224_with_learnable_pos(pretrained=False, **kwargs)
     return model
 
 @register_model
-def pretrain_mae_small_patch16_224_wo_pos(pretrained=False, **kwargs):
+def pretrain_mae_small_patch16_224_without_pos(pretrained=False, **kwargs):
     model = PretrainVisionTransformer(
         img_size=224,
         patch_size=16,
@@ -625,7 +625,7 @@ def pretrain_mae_small_patch16_224_wo_pos(pretrained=False, **kwargs):
     return model
 
 @register_model
-def pretrain_mae_base_patch16_224_with_wo_pos(pretrained=False, **kwargs):
+def pretrain_mae_base_patch16_224_without_pos(pretrained=False, **kwargs):
     model = PretrainVisionTransformer(
         img_size=224,
         patch_size=16, 
